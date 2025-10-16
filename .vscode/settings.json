@@ -1,0 +1,9 @@
+{
+    "dart.flutterSdkPath": null,
+    "dart.lineLength": 80,
+    "editor.formatOnSave": true,
+    "editor.rulers": [80],
+    "files.associations": {
+        "*.dart": "dart"
+    }
+}

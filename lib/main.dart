@@ -1,0 +1,83 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+import 'screens/login_screen.dart';
+import 'screens/home_screen.dart';
+import 'providers/auth_provider.dart';
+import 'services/alarm_manager_service.dart';
+import 'services/notification_service.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializar Firebase
+  await Firebase.initializeApp();
+
+  // Inicializar timezone
+  tz.initializeTimeZones();
+  tz.setLocalLocation(tz.getLocation('America/Argentina/Buenos_Aires'));
+
+  // Inicializar notificaciones locales
+  await NotificationService.initialize();
+
+  // Inicializar el Alarm Manager (para manejar procesos en background)
+  await AlarmManagerService.initialize();
+
+  runApp(const ProviderScope(child: MyApp()));
+}
+
+class MyApp extends ConsumerWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authStateProvider);
+
+    return MaterialApp(
+      title: 'Flutter Alarm App',
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF007AFF),
+          brightness: Brightness.light,
+        ),
+        fontFamily: 'Inter',
+        textTheme: const TextTheme(
+          headlineLarge: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.5,
+          ),
+          headlineMedium: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.25,
+          ),
+          bodyLarge: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            letterSpacing: 0.1,
+          ),
+          bodyMedium: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            letterSpacing: 0.25,
+          ),
+        ),
+      ),
+      home: authState.when(
+        data: (user) => user != null ? const HomeScreen() : const LoginScreen(),
+        loading: () => const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+        error: (error, _) => Scaffold(
+          body: Center(
+            child: Text('Error: $error'),
+          ),
+        ),
+      ),
+    );
+  }
+}

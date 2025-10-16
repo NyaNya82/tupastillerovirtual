@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "653854502006",
+    "project_id": "pastillerodb",
+    "storage_bucket": "pastillerodb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:653854502006:android:45322b339725b4f0764357",
+        "android_client_info": {
+          "package_name": "com.example.flutter_alarm_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "653854502006-ol0tr4fv6dno43qm4aep51j9ehvta4pb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.flutter_alarm_app",
+            "certificate_hash": "d8048a9e9044f658d8a0b4118106657c31a53217"
+          }
+        },
+        {
+          "client_id": "653854502006-t73cq5dmh3agqbq1mqfe2d02ccii07fk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.flutter_alarm_app",
+            "certificate_hash": "7c4028a56bef96fcde09f7246b00e7bc6ceccc1c"
+          }
+        },
+        {
+          "client_id": "653854502006-gepadp9vj3c91f5tca1136q369n0l1ka.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJC6CFntxpBGhaa0cFUbgZu_e9IlJyZlY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "653854502006-gepadp9vj3c91f5tca1136q369n0l1ka.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
