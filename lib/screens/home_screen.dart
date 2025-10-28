@@ -1,16 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../providers/auth_provider.dart';
 import '../providers/alarm_provider.dart';
 import '../widgets/alarm_tile.dart';
 import 'alarm_form_screen.dart';
 import '../services/notification_service.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _requestPermissions();
+  }
+
+  Future<void> _requestPermissions() async {
+    // Permiso para notificaciones (Android 13+)
+    if (await Permission.notification.isDenied) {
+      await Permission.notification.request();
+    }
+
+    // Permiso para alarmas exactas (Android 12+)
+    if (await Permission.scheduleExactAlarm.isDenied) {
+      await Permission.scheduleExactAlarm.request();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(authStateProvider).value;
     final alarmsAsync = ref.watch(alarmsProvider);
 

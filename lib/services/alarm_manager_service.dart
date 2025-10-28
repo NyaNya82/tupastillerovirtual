@@ -2,59 +2,63 @@ import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../models/alarm.dart';
 
+// Callback que se ejecuta cuando suena la alarma (FUNCIÓN TOP-LEVEL)
+@pragma('vm:entry-point')
+void alarmCallback(int id, Map<String, dynamic> params) async {
+  print('Alarma sonando - ID: $id');
+
+  final notifications = FlutterLocalNotificationsPlugin();
+
+  // Inicializar notificaciones para el isolate de background
+  const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const initializationSettings = InitializationSettings(android: androidSettings);
+  await notifications.initialize(initializationSettings);
+
+  // Crear canal (es seguro llamarlo múltiples veces)
+  const channel = AndroidNotificationChannel(
+    'alarm_channel',
+    'Alarmas',
+    description: 'Notificaciones de alarmas',
+    importance: Importance.max,
+    playSound: true,
+    sound: RawResourceAndroidNotificationSound('alarm'),
+  );
+  await notifications
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+
+  final notificationDetails = AndroidNotificationDetails(
+    'alarm_channel',
+    'Alarmas',
+    channelDescription: 'Notificaciones de alarmas',
+    importance: Importance.max,
+    priority: Priority.high,
+    sound: const RawResourceAndroidNotificationSound('alarm'),
+    playSound: true,
+    enableVibration: true,
+    fullScreenIntent: true,
+    category: AndroidNotificationCategory.alarm,
+  );
+
+  await notifications.show(
+    id,
+    params['name'] as String,
+    'Compartimento ${params['compartment']}',
+    NotificationDetails(android: notificationDetails),
+  );
+}
+
 class AlarmManagerService {
-  static final FlutterLocalNotificationsPlugin _notifications =
-      FlutterLocalNotificationsPlugin();
+  // Ya no se necesita una instancia de notificaciones aquí para el callback
+  // static final FlutterLocalNotificationsPlugin _notifications =
+  //     FlutterLocalNotificationsPlugin();
 
   // Inicializar el servicio
   static Future<void> initialize() async {
     await AndroidAlarmManager.initialize();
-    
-    // Inicializar notificaciones también
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const initializationSettings = InitializationSettings(android: androidSettings);
-    
-    await _notifications.initialize(initializationSettings);
-    
-    // Crear canal de notificación
-    const channel = AndroidNotificationChannel(
-      'alarm_channel',
-      'Alarmas',
-      description: 'Notificaciones de alarmas',
-      importance: Importance.max,
-      playSound: true,
-      sound: RawResourceAndroidNotificationSound('alarm'),
-    );
-    
-    await _notifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
-  }
 
-  // Callback que se ejecuta cuando suena la alarma
-  @pragma('vm:entry-point')
-  static void alarmCallback(int id, Map<String, dynamic> params) async {
-    print('Alarma sonando - ID: $id');
-    
-    final notificationDetails = AndroidNotificationDetails(
-      'alarm_channel',
-      'Alarmas',
-      channelDescription: 'Notificaciones de alarmas',
-      importance: Importance.max,
-      priority: Priority.high,
-      sound: const RawResourceAndroidNotificationSound('alarm'),
-      playSound: true,
-      enableVibration: true,
-      fullScreenIntent: true,
-      category: AndroidNotificationCategory.alarm,
-    );
-
-    await _notifications.show(
-      id,
-      params['name'] as String,
-      'Compartimento ${params['compartment']}',
-      NotificationDetails(android: notificationDetails),
-    );
+    // La inicialización de notificaciones y canal se hará en el callback
+    // y en el servicio de notificaciones principal.
   }
 
   // Programar alarma
@@ -92,7 +96,7 @@ class AlarmManagerService {
     if (alarm.repeat.isEmpty) {
       // Alarma única
       print('Programando alarma única para: $scheduledTime');
-      
+
       await AndroidAlarmManager.oneShotAt(
         scheduledTime,
         alarm.id.hashCode,
@@ -102,15 +106,15 @@ class AlarmManagerService {
         rescheduleOnReboot: true,
         params: params,
       );
-      
+
       print('Alarma única programada exitosamente');
     } else {
       // Alarma periódica (diaria a la misma hora)
       print('Programando alarma periódica cada 24 horas desde: $scheduledTime');
-      
+
       // Primero cancela cualquier alarma existente
       await AndroidAlarmManager.cancel(alarm.id.hashCode);
-      
+
       // Programa la alarma periódica
       await AndroidAlarmManager.periodic(
         const Duration(days: 1),
@@ -122,7 +126,7 @@ class AlarmManagerService {
         rescheduleOnReboot: true,
         params: params,
       );
-      
+
       print('Alarma periódica programada exitosamente');
     }
 

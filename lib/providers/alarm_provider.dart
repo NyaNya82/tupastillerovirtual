@@ -60,7 +60,7 @@ class AlarmManager {
     
     // Cancelar alarma anterior
     await AlarmManagerService.cancelAlarm(alarm.id);  // CAMBIO: AlarmManagerService
-    
+
     // Programar nueva si está habilitada
     if (alarm.enabled) {
       await AlarmManagerService.scheduleAlarm(alarm);  // CAMBIO: AlarmManagerService
