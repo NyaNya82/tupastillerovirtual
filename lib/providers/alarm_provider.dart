@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/alarm.dart';
 import '../services/firebase_service.dart';
-import '../services/alarm_manager_service.dart';  // CAMBIO: Nuevo import
+import '../services/alarm_manager_service.dart';
 import 'auth_provider.dart';
 
-// Provider para el servicio de Firebase
+// Provider para el servicio de Firebase  
 final firebaseServiceProvider = Provider<FirebaseService>((ref) {
   return FirebaseService();
 });
@@ -49,7 +49,7 @@ class AlarmManager {
     if (userId == null) throw Exception('Usuario no autenticado');
     
     await firebaseService.createAlarm(userId!, alarm);
-    await AlarmManagerService.scheduleAlarm(alarm);  // CAMBIO: AlarmManagerService
+    await AlarmManagerService.scheduleAlarm(alarm);
   }
 
   // Actualizar alarma
@@ -57,13 +57,10 @@ class AlarmManager {
     if (userId == null) throw Exception('Usuario no autenticado');
     
     await firebaseService.updateAlarm(userId!, alarm);
+    await AlarmManagerService.cancelAlarm(alarm.id);
     
-    // Cancelar alarma anterior
-    await AlarmManagerService.cancelAlarm(alarm.id);  // CAMBIO: AlarmManagerService
-    
-    // Programar nueva si está habilitada
     if (alarm.enabled) {
-      await AlarmManagerService.scheduleAlarm(alarm);  // CAMBIO: AlarmManagerService
+      await AlarmManagerService.scheduleAlarm(alarm);
     }
   }
 
@@ -72,7 +69,7 @@ class AlarmManager {
     if (userId == null) throw Exception('Usuario no autenticado');
     
     await firebaseService.deleteAlarm(userId!, alarmId);
-    await AlarmManagerService.cancelAlarm(alarmId);  // CAMBIO: AlarmManagerService
+    await AlarmManagerService.cancelAlarm(alarmId); // ✅ Corregido
   }
 
   // Alternar habilitación de alarma
