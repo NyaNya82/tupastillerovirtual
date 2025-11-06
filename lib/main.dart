@@ -8,6 +8,8 @@ import 'screens/home_screen.dart';
 import 'providers/auth_provider.dart';
 import 'services/alarm_manager_service.dart';
 import 'services/notification_service.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'screens/notification_action_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +23,14 @@ void main() async {
 
   // Inicializar notificaciones locales
   await NotificationService.initialize();
+
+  // Pedir permisos Bluetooth en runtime
+  await [
+    Permission.bluetooth,
+    Permission.bluetoothScan,
+    Permission.bluetoothConnect,
+    Permission.location,
+  ].request();
 
   // Inicializar el Alarm Manager (para manejar procesos en background)
   await AlarmManagerService.initialize();
@@ -37,6 +47,13 @@ class MyApp extends ConsumerWidget {
 
     return MaterialApp(
       title: 'Flutter Alarm App',
+      navigatorKey: navigatorKey, // 👈 importante
+      routes: {
+        '/notification-action': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as String?;
+          return NotificationActionHandler(payload: args);
+        },
+      },
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(

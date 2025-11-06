@@ -3,6 +3,9 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:permission_handler/permission_handler.dart';
 import '../models/alarm.dart';
+import 'package:flutter/material.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notifications =
@@ -26,8 +29,21 @@ class NotificationService {
     // Inicializa el plugin con callback para taps
     await _notifications.initialize(
       initializationSettings,
-      onDidReceiveNotificationResponse: _onNotificationTapped,
+      onDidReceiveNotificationResponse: (response) {
+        final payload = response.payload;
+        print('🔔 Notificación tocada: $payload');
+
+        if (payload != null && payload.startsWith('ALARM:')) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            navigatorKey.currentState?.pushNamed(
+              '/notification-action',
+              arguments: payload,
+            );
+          });
+        }
+      },
     );
+
 
     // 🔸 Solicitar permisos ANTES de crear canales
     await _requestPermissions();
@@ -84,11 +100,6 @@ class NotificationService {
     await androidPlugin?.requestNotificationsPermission();
   }
 
-  /// 🔔 Callback cuando se toca una notificación
-  static void _onNotificationTapped(NotificationResponse response) {
-    print('🔔 Notificación tocada: ${response.payload}');
-    // Aquí puedes navegar a una pantalla específica si lo necesitas
-  }
 
   /// ⏰ Programar una alarma
   static Future<void> scheduleNotification(Alarm alarm) async {
