@@ -26,7 +26,9 @@ class BluetoothService {
           print('✅ Dispositivo encontrado: ${d.name}');
           _device = d;
 
-          _connection = await BluetoothConnection.toAddress(d.address);
+          // Conectar con timeout de 10 segundos
+          _connection = await BluetoothConnection.toAddress(d.address)
+              .timeout(const Duration(seconds: 10));
           print('🔗 Conectado a ${d.name}');
           return true;
         }
@@ -50,7 +52,7 @@ class BluetoothService {
 
       if (_connection != null && _connection!.isConnected) {
         _connection!.output.add(utf8.encode(command + "\n"));
-        await _connection!.output.allSent;
+        await _connection!.output.allSent.timeout(const Duration(seconds: 5));
         print('📤 Enviado: $command');
       } else {
         print('❌ No se pudo enviar, sin conexión.');

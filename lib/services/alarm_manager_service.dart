@@ -32,8 +32,7 @@ class AlarmManagerService {
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
 
-    // Intentar conexión Bluetooth (opcional)
-    await BluetoothService.connectToPillDispenser();
+    // La conexión Bluetooth ahora se gestiona de forma independiente
   }
 
   /// 🔔 Callback: se ejecuta cuando suena la alarma
@@ -69,9 +68,9 @@ class AlarmManagerService {
       NotificationDetails(android: notificationDetails),
     );
 
-    // Enviar comando al dispensador físico
+    // Enviar comando al dispensador físico (sin esperar)
     final comp = params['compartment'];
-    await BluetoothService.sendCommand('ALARM:$comp');
+    BluetoothService.sendCommand('ALARM:$comp');
   }
 
   /// ⏰ Programar una alarma
