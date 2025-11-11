@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
@@ -33,10 +34,16 @@ class NotificationService {
           final compartmentId = int.tryParse(payload.split(':')[1]) ?? -1;
 
           if (compartmentId >= 0) {
+            // Espera breve para que la app se estabilice
+            await Future.delayed(const Duration(seconds: 2));
             print('📡 Enviando comando Bluetooth: ALARM:$compartmentId');
+
             try {
-              await BluetoothService.sendCommand('ALARM:$compartmentId');
+              await BluetoothService.sendCommand('ALARM:$compartmentId')
+                  .timeout(const Duration(seconds: 15));
               print('✅ Comando enviado correctamente al HC-05');
+            } on TimeoutException {
+              print('❌ Timeout: No se pudo enviar el comando en 15 segundos');
             } catch (e) {
               print('❌ Error al enviar comando Bluetooth: $e');
             }

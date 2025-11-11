@@ -21,20 +21,21 @@ class BluetoothService {
       print('🔍 Buscando dispositivos emparejados...');
       List<BluetoothDevice> devices = await _bluetooth.getBondedDevices();
 
-      for (var d in devices) {
-        if (d.name?.contains('HC-05') ?? false) {
-          print('✅ Dispositivo encontrado: ${d.name}');
-          _device = d;
+      _device = devices.firstWhere(
+        (d) => d.name?.contains('HC-05') ?? false,
+        orElse: () => throw Exception('No se encontró el HC-05 emparejado'),
+      );
 
-          // Conectar con timeout de 10 segundos
-          _connection = await BluetoothConnection.toAddress(d.address)
-              .timeout(const Duration(seconds: 10));
-          print('🔗 Conectado a ${d.name}');
-          return true;
-        }
-      }
+      print('✅ Dispositivo encontrado: ${_device!.name}');
 
-      print('⚠️ No se encontró el HC-05 emparejado.');
+      _connection = await BluetoothConnection.toAddress(_device!.address)
+          .timeout(const Duration(seconds: 10));
+
+      print('🔗 Conectado a ${_device!.name}');
+      return true;
+
+    } on TimeoutException {
+      print('🚨 Timeout: No se pudo conectar en 10 segundos.');
       return false;
     } catch (e) {
       print('🚨 Error conectando al HC-05: $e');
@@ -42,24 +43,39 @@ class BluetoothService {
     }
   }
 
-  /// Envía un comando de texto al HC-05
+  /// Envía un comando de texto al HC-05 con reintentos
   static Future<void> sendCommand(String command) async {
-    try {
-      if (_connection == null || !_connection!.isConnected) {
-        print('⚠️ Sin conexión activa. Intentando reconectar...');
-        await connectToPillDispenser();
+    const maxRetries = 3;
+    const retryDelay = Duration(seconds: 2);
+
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        if (_connection == null || !_connection!.isConnected) {
+          print('⚠️ Sin conexión (Intento $attempt/$maxRetries). Reconectando...');
+          await connectToPillDispenser();
+        }
+
+        if (_connection != null && _connection!.isConnected) {
+          _connection!.output.add(utf8.encode(command + "\n"));
+          await _connection!.output.allSent.timeout(const Duration(seconds: 5));
+          print('📤 Enviado: $command');
+          return; // Comando enviado con éxito
+        }
+      } on TimeoutException {
+        print('🚨 Timeout en intento $attempt/$maxRetries: El envío tardó más de 5 segundos.');
+        await disconnect(); // Forzar desconexión para un reintento limpio
+      } catch (e) {
+        print('🚨 Error en intento $attempt/$maxRetries: $e');
+        await disconnect(); // Cerrar conexión para reintentar
       }
 
-      if (_connection != null && _connection!.isConnected) {
-        _connection!.output.add(utf8.encode(command + "\n"));
-        await _connection!.output.allSent.timeout(const Duration(seconds: 5));
-        print('📤 Enviado: $command');
-      } else {
-        print('❌ No se pudo enviar, sin conexión.');
+      if (attempt < maxRetries) {
+        await Future.delayed(retryDelay);
       }
-    } catch (e) {
-      print('🚨 Error enviando comando: $e');
     }
+
+    print('❌ No se pudo enviar el comando después de $maxRetries intentos.');
+    throw Exception('Failed to send command after $maxRetries retries');
   }
 
   static Future<void> disconnect() async {
