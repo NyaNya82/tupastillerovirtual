@@ -1,7 +1,6 @@
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../models/alarm.dart';
-import 'bluetooth_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> alarmCallback(int id, Map<String, dynamic> params) async {
@@ -9,8 +8,7 @@ Future<void> alarmCallback(int id, Map<String, dynamic> params) async {
 
   // Inicializar notificaciones dentro del isolate
   const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-  const initializationSettings =
-      InitializationSettings(android: androidSettings);
+  const initializationSettings = InitializationSettings(android: androidSettings);
   final notifications = FlutterLocalNotificationsPlugin();
   await notifications.initialize(initializationSettings);
 
@@ -35,9 +33,9 @@ Future<void> alarmCallback(int id, Map<String, dynamic> params) async {
     NotificationDetails(android: notificationDetails),
   );
 
-  // Enviar comando al dispensador físico (sin esperar)
-  final comp = params['compartment'];
-  BluetoothService.sendCommand('ALARM:$comp');
+  // 🟡 Importante:
+  // Ya NO se envía el comando Bluetooth aquí, porque el isolate no puede acceder al Bluetooth.
+  // El comando se envía correctamente al tocar la notificación (via NotificationActionHandler).
 }
 
 class AlarmManagerService {
@@ -50,8 +48,7 @@ class AlarmManagerService {
 
     // Inicializar notificaciones
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const initializationSettings =
-        InitializationSettings(android: androidSettings);
+    const initializationSettings = InitializationSettings(android: androidSettings);
     await _notifications.initialize(initializationSettings);
 
     // Crear canal de notificación
@@ -68,8 +65,6 @@ class AlarmManagerService {
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
-
-    // La conexión Bluetooth ahora se gestiona de forma independiente
   }
 
   /// ⏰ Programar una alarma
@@ -104,7 +99,7 @@ class AlarmManagerService {
       await AndroidAlarmManager.oneShotAt(
         scheduledTime,
         alarm.id.hashCode,
-        alarmCallback, // 👈 se referencia correctamente
+        alarmCallback,
         exact: true,
         wakeup: true,
         rescheduleOnReboot: true,
@@ -115,7 +110,7 @@ class AlarmManagerService {
       await AndroidAlarmManager.periodic(
         const Duration(days: 1),
         alarm.id.hashCode,
-        alarmCallback, // 👈 igual acá
+        alarmCallback,
         startAt: scheduledTime,
         exact: true,
         wakeup: true,

@@ -4,7 +4,6 @@ import '../providers/auth_provider.dart';
 import '../providers/alarm_provider.dart';
 import '../widgets/alarm_tile.dart';
 import 'alarm_form_screen.dart';
-import '../services/notification_service.dart';
 import '../services/bluetooth_service.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -63,18 +62,6 @@ final alarmsAsync = ref.watch(alarmsProvider);
               }
             },
           ),
-        // Botón de prueba de notificación
-        IconButton(
-          icon: const Icon(Icons.notifications_active, color: Colors.orange),
-          onPressed: () async {
-            await NotificationService.testNotification();
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Notificación de prueba enviada')),
-              );
-            }
-          },
-        ),
         PopupMenuButton(
           icon: CircleAvatar(
             backgroundImage: user?.photoURL != null
