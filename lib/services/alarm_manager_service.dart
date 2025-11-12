@@ -1,17 +1,26 @@
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../models/alarm.dart';
+import 'bluetooth_service.dart'; // Asegúrate de que la ruta sea correcta
 
 @pragma('vm:entry-point')
 Future<void> alarmCallback(int id, Map<String, dynamic> params) async {
-  print('🔔 Alarma sonando - ID: $id');
+  print('🔔 Alarma sonando en background - ID: $id');
 
-  // Inicializar notificaciones dentro del isolate
+  // Esencial para que los plugins funcionen en background
+  final RootIsolateToken? token = RootIsolateToken.instance;
+  if (token != null) {
+    BackgroundIsolateBinaryMessenger.ensureInitialized(token);
+  }
+
+  // Inicializar notificaciones
+  final notifications = FlutterLocalNotificationsPlugin();
   const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
   const initializationSettings = InitializationSettings(android: androidSettings);
-  final notifications = FlutterLocalNotificationsPlugin();
   await notifications.initialize(initializationSettings);
 
+  // Mostrar notificación
   final notificationDetails = AndroidNotificationDetails(
     'alarm_channel',
     'Alarmas',
@@ -20,22 +29,29 @@ Future<void> alarmCallback(int id, Map<String, dynamic> params) async {
     priority: Priority.high,
     sound: const RawResourceAndroidNotificationSound('alarm'),
     playSound: true,
-    enableVibration: true,
     fullScreenIntent: true,
     category: AndroidNotificationCategory.alarm,
   );
 
-  // Mostrar notificación local
   await notifications.show(
     id,
     params['name'] as String,
     'Compartimento ${params['compartment']}',
     NotificationDetails(android: notificationDetails),
+    payload: 'ALARM:${params['compartment']}',
   );
 
-  // 🟡 Importante:
-  // Ya NO se envía el comando Bluetooth aquí, porque el isolate no puede acceder al Bluetooth.
-  // El comando se envía correctamente al tocar la notificación (via NotificationActionHandler).
+  // Enviar comando Bluetooth
+  try {
+    print('📡 Inicializando Bluetooth en background...');
+    await BluetoothService.initialize();
+    final command = 'ALARM:${params['compartment']}';
+    print('🔧 Enviando comando: $command');
+    await BluetoothService.sendCommand(command);
+    print('✅ Comando Bluetooth enviado desde el background');
+  } catch (e) {
+    print('❌ Error al enviar comando Bluetooth desde el background: $e');
+  }
 }
 
 class AlarmManagerService {
