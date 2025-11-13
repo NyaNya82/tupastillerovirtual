@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
+import '../providers/bluetooth_provider.dart';
 import '../providers/alarm_provider.dart';
 import '../widgets/alarm_tile.dart';
 import 'alarm_form_screen.dart';
@@ -13,9 +15,31 @@ const HomeScreen({super.key});
 Widget build(BuildContext context, WidgetRef ref) {
 final user = ref.watch(authStateProvider).value;
 final alarmsAsync = ref.watch(alarmsProvider);
-  return Scaffold(
-    backgroundColor: const Color(0xFFF8F9FA),
-    appBar: AppBar(
+final bluetoothState = ref.watch(bluetoothStateProvider);
+
+return Scaffold(
+  backgroundColor: const Color(0xFFF8F9FA),
+  appBar: AppBar(
+    bottom: bluetoothState == BluetoothState.STATE_OFF
+        ? PreferredSize(
+            preferredSize: const Size.fromHeight(40.0),
+            child: Container(
+              color: Colors.redAccent,
+              padding: const EdgeInsets.all(8),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.bluetooth_disabled, color: Colors.white, size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    'Bluetooth está desactivado. Actívalo para las alarmas.',
+                    style: TextStyle(color: Colors.white, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+          )
+        : null,
       backgroundColor: Colors.transparent,
       elevation: 0,
       title: Column(

@@ -49,9 +49,15 @@ Future<void> alarmCallback(int id, Map<String, dynamic> params) async {
     print('🔧 Enviando comando: $command');
     await BluetoothService.sendCommand(command);
     print('✅ Comando Bluetooth enviado desde el background');
+  } on PlatformException catch (e) {
+    if (e.code == 'bluetooth_unavailable') {
+      print('❌ Error: El Bluetooth no estaba activado para la tarea en background.');
+      // Aquí se podría mostrar una notificación al usuario indicando el problema.
+    } else {
+      print('❌ Error de plataforma al enviar comando Bluetooth: ${e.message}');
+    }
   } catch (e) {
-    print('❌ Error al enviar comando Bluetooth desde el background: $e');
-    // Opcional: podrías mostrar una notificación de error
+    print('❌ Error inesperado al enviar comando Bluetooth: $e');
   }
 }
 
