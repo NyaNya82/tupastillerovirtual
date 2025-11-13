@@ -26,38 +26,20 @@ class NotificationService {
 
     await _notifications.initialize(
       initializationSettings,
-      onDidReceiveNotificationResponse: (response) async {
-        final payload = response.payload;
-        print('🔔 Notificación tocada con payload: $payload');
-
-        if (payload != null && payload.startsWith('ALARM:')) {
-          final compartmentId = int.tryParse(payload.split(':')[1]) ?? -1;
-
-          if (compartmentId >= 0) {
-            // Espera breve para que la app se estabilice al abrirse
-            await Future.delayed(const Duration(seconds: 2));
-            print('📡 Enviando comando Bluetooth desde primer plano...');
-
-            try {
-              await BluetoothService.initializeFromForeground();
-              final command = 'ALARM:$compartmentId';
-
-              await BluetoothService.sendCommand(command)
-                  .timeout(const Duration(seconds: 15));
-
-              print('✅ Comando enviado correctamente al tocar la notificación.');
-
-            } on TimeoutException {
-              print('❌ Timeout: No se pudo enviar el comando en 15 segundos.');
-            } catch (e) {
-              print('❌ Error al enviar comando al tocar la notificación: $e');
-            }
-          }
-        }
-      },
+      onDidReceiveNotificationResponse: _handleNotificationResponse,
     );
 
     await _requestPermissions();
+
+    // Check if the app was launched from a notification
+    final launchDetails =
+        await _notifications.getNotificationAppLaunchDetails();
+    if (launchDetails?.didNotificationLaunchApp ?? false) {
+      if (launchDetails!.notificationResponse != null) {
+        print('📱 App launched from notification tap.');
+        await _handleNotificationResponse(launchDetails.notificationResponse!);
+      }
+    }
 
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'alarm_channel',
@@ -209,5 +191,33 @@ class NotificationService {
   static Future<List<PendingNotificationRequest>>
       getPendingNotifications() async {
     return await _notifications.pendingNotificationRequests();
+  }
+
+  ///  centralized handler for notification responses
+  static Future<void> _handleNotificationResponse(
+      NotificationResponse response) async {
+    final payload = response.payload;
+    print('🔔 Handling notification response with payload: $payload');
+
+    if (payload != null && payload.startsWith('ALARM:')) {
+      final compartmentId = int.tryParse(payload.split(':')[1]) ?? -1;
+
+      if (compartmentId >= 0) {
+        await Future.delayed(const Duration(seconds: 2));
+        print('📡 Sending Bluetooth command from foreground...');
+
+        try {
+          await BluetoothService.initializeFromForeground();
+          final command = 'ALARM:$compartmentId';
+          await BluetoothService.sendCommand(command)
+              .timeout(const Duration(seconds: 15));
+          print('✅ Command sent successfully upon notification tap.');
+        } on TimeoutException {
+          print('❌ Timeout: Could not send command within 15 seconds.');
+        } catch (e) {
+          print('❌ Error sending command on notification tap: $e');
+        }
+      }
+    }
   }
 }
