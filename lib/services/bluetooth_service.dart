@@ -7,11 +7,22 @@ class BluetoothService {
   static BluetoothConnection? _connection;
   static BluetoothDevice? _device;
 
-  static Future<void> initialize() async {
-    // Asegura que Bluetooth esté activado
+  /// Inicializa desde el primer plano (permite solicitar activación)
+  static Future<void> initializeFromForeground() async {
     bool? isEnabled = await _bluetooth.isEnabled;
     if (isEnabled == false) {
       await _bluetooth.requestEnable();
+    }
+  }
+
+  /// Inicializa desde un isolate en background (no debe solicitar activación)
+  static Future<void> initializeFromBackground() async {
+    bool? isEnabled = await _bluetooth.isEnabled;
+    if (isEnabled == false) {
+      throw PlatformException(
+        code: 'bluetooth_unavailable',
+        message: 'Bluetooth is not enabled for background task.',
+      );
     }
   }
 

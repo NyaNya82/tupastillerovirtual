@@ -7,6 +7,7 @@ import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'providers/auth_provider.dart';
 import 'services/alarm_manager_service.dart';
+import 'services/bluetooth_service.dart';
 import 'services/notification_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'screens/notification_action_handler.dart';
@@ -34,6 +35,14 @@ void main() async {
 
   // Inicializar el Alarm Manager (para manejar procesos en background)
   await AlarmManagerService.initialize();
+
+  // Asegurarse de que el Bluetooth esté activado al iniciar la app
+  try {
+    await BluetoothService.initializeFromForeground();
+    print('✅ Bluetooth inicializado en primer plano.');
+  } catch (e) {
+    print('⚠️ Error al inicializar Bluetooth en primer plano: $e');
+  }
 
   runApp(const ProviderScope(child: MyApp()));
 }

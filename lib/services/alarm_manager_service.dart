@@ -44,13 +44,14 @@ Future<void> alarmCallback(int id, Map<String, dynamic> params) async {
   // Enviar comando Bluetooth
   try {
     print('📡 Inicializando Bluetooth en background...');
-    await BluetoothService.initialize();
+    await BluetoothService.initializeFromBackground();
     final command = 'ALARM:${params['compartment']}';
     print('🔧 Enviando comando: $command');
     await BluetoothService.sendCommand(command);
     print('✅ Comando Bluetooth enviado desde el background');
   } catch (e) {
     print('❌ Error al enviar comando Bluetooth desde el background: $e');
+    // Opcional: podrías mostrar una notificación de error
   }
 }
 
