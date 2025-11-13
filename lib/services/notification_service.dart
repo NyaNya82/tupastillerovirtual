@@ -4,6 +4,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
+import 'bluetooth_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -25,10 +26,34 @@ class NotificationService {
 
     await _notifications.initialize(
       initializationSettings,
-      onDidReceiveNotificationResponse: (response) {
-        print('🔔 Notificación tocada con payload: ${response.payload}');
-        // La app se abrirá automáticamente.
-        // El comando Bluetooth ya fue enviado por el AlarmManager.
+      onDidReceiveNotificationResponse: (response) async {
+        final payload = response.payload;
+        print('🔔 Notificación tocada con payload: $payload');
+
+        if (payload != null && payload.startsWith('ALARM:')) {
+          final compartmentId = int.tryParse(payload.split(':')[1]) ?? -1;
+
+          if (compartmentId >= 0) {
+            // Espera breve para que la app se estabilice al abrirse
+            await Future.delayed(const Duration(seconds: 2));
+            print('📡 Enviando comando Bluetooth desde primer plano...');
+
+            try {
+              await BluetoothService.initializeFromForeground();
+              final command = 'ALARM:$compartmentId';
+
+              await BluetoothService.sendCommand(command)
+                  .timeout(const Duration(seconds: 15));
+
+              print('✅ Comando enviado correctamente al tocar la notificación.');
+
+            } on TimeoutException {
+              print('❌ Timeout: No se pudo enviar el comando en 15 segundos.');
+            } catch (e) {
+              print('❌ Error al enviar comando al tocar la notificación: $e');
+            }
+          }
+        }
       },
     );
 

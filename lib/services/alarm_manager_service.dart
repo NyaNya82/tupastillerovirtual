@@ -1,18 +1,10 @@
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../models/alarm.dart';
-import 'bluetooth_service.dart'; // Asegúrate de que la ruta sea correcta
 
 @pragma('vm:entry-point')
 Future<void> alarmCallback(int id, Map<String, dynamic> params) async {
   print('🔔 Alarma sonando en background - ID: $id');
-
-  // Esencial para que los plugins funcionen en background
-  final RootIsolateToken? token = RootIsolateToken.instance;
-  if (token != null) {
-    BackgroundIsolateBinaryMessenger.ensureInitialized(token);
-  }
 
   // Inicializar notificaciones
   final notifications = FlutterLocalNotificationsPlugin();
@@ -40,25 +32,6 @@ Future<void> alarmCallback(int id, Map<String, dynamic> params) async {
     NotificationDetails(android: notificationDetails),
     payload: 'ALARM:${params['compartment']}',
   );
-
-  // Enviar comando Bluetooth
-  try {
-    print('📡 Inicializando Bluetooth en background...');
-    await BluetoothService.initializeFromBackground();
-    final command = 'ALARM:${params['compartment']}';
-    print('🔧 Enviando comando: $command');
-    await BluetoothService.sendCommand(command);
-    print('✅ Comando Bluetooth enviado desde el background');
-  } on PlatformException catch (e) {
-    if (e.code == 'bluetooth_unavailable') {
-      print('❌ Error: El Bluetooth no estaba activado para la tarea en background.');
-      // Aquí se podría mostrar una notificación al usuario indicando el problema.
-    } else {
-      print('❌ Error de plataforma al enviar comando Bluetooth: ${e.message}');
-    }
-  } catch (e) {
-    print('❌ Error inesperado al enviar comando Bluetooth: $e');
-  }
 }
 
 class AlarmManagerService {
