@@ -26,7 +26,7 @@ class NotificationService {
 
     await _notifications.initialize(
       initializationSettings,
-      onDidReceiveNotificationResponse: _handleNotificationResponse,
+      onDidReceiveNotificationResponse: handleNotificationResponse,
     );
 
     await _requestPermissions();
@@ -37,7 +37,7 @@ class NotificationService {
     if (launchDetails?.didNotificationLaunchApp ?? false) {
       if (launchDetails!.notificationResponse != null) {
         print('📱 App launched from notification tap.');
-        await _handleNotificationResponse(launchDetails.notificationResponse!);
+        await handleNotificationResponse(launchDetails.notificationResponse!);
       }
     }
 
@@ -193,8 +193,8 @@ class NotificationService {
     return await _notifications.pendingNotificationRequests();
   }
 
-  ///  centralized handler for notification responses
-  static Future<void> _handleNotificationResponse(
+  /// Public, static, and centralized handler for notification responses
+  static Future<void> handleNotificationResponse(
       NotificationResponse response) async {
     final payload = response.payload;
     print('🔔 Handling notification response with payload: $payload');

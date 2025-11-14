@@ -22,9 +22,6 @@ void main() async {
   tz.initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('America/Argentina/Buenos_Aires'));
 
-  // Inicializar notificaciones locales
-  await NotificationService.initialize();
-
   // Pedir permisos Bluetooth en runtime
   await [
     Permission.bluetooth,
@@ -47,11 +44,26 @@ void main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    await NotificationService.initialize();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
 
     return MaterialApp(
