@@ -199,23 +199,27 @@ class NotificationService {
     final payload = response.payload;
     print('🔔 Handling notification response with payload: $payload');
 
-    if (payload != null && payload.startsWith('ALARM:')) {
-      final compartmentId = int.tryParse(payload.split(':')[1]) ?? -1;
+    if (payload != null && payload.startsWith('ALARM;')) {
+      final parts = payload.split(';');
+      if (parts.length == 3) {
+        final compartmentId = int.tryParse(parts[1]) ?? -1;
+        final medicineName = parts[2];
 
-      if (compartmentId >= 0) {
-        await Future.delayed(const Duration(seconds: 2));
-        print('📡 Sending Bluetooth command from foreground...');
+        if (compartmentId >= 0) {
+          await Future.delayed(const Duration(seconds: 2));
+          print('📡 Sending Bluetooth command from foreground...');
 
-        try {
-          await BluetoothService.initializeFromForeground();
-          final command = 'ALARM:$compartmentId';
-          await BluetoothService.sendCommand(command)
-              .timeout(const Duration(seconds: 15));
-          print('✅ Command sent successfully upon notification tap.');
-        } on TimeoutException {
-          print('❌ Timeout: Could not send command within 15 seconds.');
-        } catch (e) {
-          print('❌ Error sending command on notification tap: $e');
+          try {
+            await BluetoothService.initializeFromForeground();
+            final command = 'ALARM;$compartmentId;$medicineName';
+            await BluetoothService.sendCommand(command)
+                .timeout(const Duration(seconds: 15));
+            print('✅ Command sent successfully upon notification tap.');
+          } on TimeoutException {
+            print('❌ Timeout: Could not send command within 15 seconds.');
+          } catch (e) {
+            print('❌ Error sending command on notification tap: $e');
+          }
         }
       }
     }

@@ -30,7 +30,7 @@ Future<void> alarmCallback(int id, Map<String, dynamic> params) async {
     params['name'] as String,
     'Compartimento ${params['compartment']}',
     NotificationDetails(android: notificationDetails),
-    payload: 'ALARM:${params['compartment']}',
+    payload: 'ALARM;${params['compartment']};${params['name']}',
   );
 }
 
