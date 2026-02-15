@@ -210,10 +210,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_local_notifications
-      sha256: "40e6fbd2da7dcc7ed78432c5cdab1559674b4af035fddbfb2f9a8f9c2112fcef"
+      sha256: "674173fd3c9eda9d4c8528da2ce0ea69f161577495a9cc835a2a4ecd7eadeb35"
       url: "https://pub.dev"
     source: hosted
-    version: "17.1.2"
+    version: "17.2.4"
   flutter_local_notifications_linux:
     dependency: transitive
     description:
@@ -380,10 +380,10 @@ packages:
     dependency: transitive
     description:
       name: meta
-      sha256: e3641ec5d63ebf0d9b41bd43201a66e3fc79a65db5f61fc181f04cd27aab950c
+      sha256: "23f08335362185a5ea2ad3a4e597f1375e78bce8a040df5c600c8d3552ef2394"
       url: "https://pub.dev"
     source: hosted
-    version: "1.16.0"
+    version: "1.17.0"
   path:
     dependency: transitive
     description:
@@ -617,10 +617,10 @@ packages:
     dependency: transitive
     description:
       name: test_api
-      sha256: "522f00f556e73044315fa4585ec3270f1808a4b186c936e612cab0b565ff1e00"
+      sha256: ab2726c1a94d3176a45960b6234466ec367179b87dd74f1611adb1f3b5fb9d55
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.6"
+    version: "0.7.7"
   timezone:
     dependency: "direct main"
     description:

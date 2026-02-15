@@ -20,7 +20,7 @@ dependencies:
   flutter_riverpod: ^2.4.9
 
   # Notificaciones (la versión con APIs que ya usás)
-  flutter_local_notifications: 17.1.2
+  flutter_local_notifications: ^17.2.3
   timezone: ^0.9.2
   permission_handler: ^11.0.1
 
